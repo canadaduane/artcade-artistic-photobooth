@@ -5,3 +5,8 @@
 
 # Download v7.5 and unpack. A 'cuda' directory should now be
 # in the 'downloads' directory here.
+
+wget http://developer.download.nvidia.com/compute/cuda/7.5/Prod/local_installers/cuda_7.5.18_linux.run
+
+# From http://www.vlfeat.org/matconvnet/pretrained/
+wget http://www.vlfeat.org/matconvnet/models/imagenet-vgg-verydeep-19.mat

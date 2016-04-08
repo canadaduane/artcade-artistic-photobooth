@@ -1,0 +1,9 @@
+[submodule "cudarray"]
+	path = cudarray
+	url = git@github.com:andersbll/cudarray.git
+[submodule "deeppy"]
+	path = deeppy
+	url = git@github.com:andersbll/deeppy.git
+[submodule "neural_artistic_style"]
+	path = neural_artistic_style
+	url = git@github.com:andersbll/neural_artistic_style.git
