@@ -20,6 +20,7 @@ def process(filepath):
   cmd = "python -u /style/neural_artistic_style.py " \
     "--style {0} --subject {1} --output {2} " \
     "--network /style/imagenet-vgg-verydeep-19.mat " \
+    "--iterations 200 " \
     "".format(style_path, subject_path, output_path)
   with open(stdout_path, 'w') as f:
     call(cmd.split(), stdout=f, bufsize=1)
