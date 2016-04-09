@@ -4,8 +4,9 @@ services:
     build: .
     volumes:
      - ./images:/images
+     - ./runner.py:/runner.py
     devices:
      - "/dev/nvidiactl:/dev/nvidiactl"
      - "/dev/nvidia-uvm:/dev/nvidia-uvm"
      - "/dev/nvidia0:/dev/nvidia0"
-
+    command: python /runner.py

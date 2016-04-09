@@ -95,7 +95,7 @@ class MainWindow():
     self.canvas_result = Canvas(f3, width=self.scrw, height=self.scrh, bg="black")
     self.canvas_result.pack(fill=BOTH, expand=1)
 
-    self.root.after(0, self.start)
+    self.root.after(0, self.stream_camera)
     self.root.bind("<Key>", self.key_callback)
     self.root.bind("<Button-1>", self.click_callback)
 
@@ -155,7 +155,7 @@ class MainWindow():
     print "ArtRequest ID: ", req.uid
     req.save()
 
-  def start(self):
+  def stream_camera(self):
     err, frame = self.capture.read()
     if frame is not None:
       self.image = self.capture_to_image(frame)
@@ -172,7 +172,7 @@ class MainWindow():
         print "{0}: {1} FPS".format(time.clock(), fps)
 
       # Schedule the next camera frame grab
-      self.root.after(10, self.start)
+      self.root.after(10, self.stream_camera)
 
 if __name__ == '__main__':
   MainWindow()
