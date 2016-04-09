@@ -114,8 +114,6 @@ class MainWindow():
     self.capture.set(cv2.cv.CV_CAP_PROP_FRAME_WIDTH, self.capw)
     self.capture.set(cv2.cv.CV_CAP_PROP_FRAME_HEIGHT, self.caph)
 
-    self.capture_target = 'style'
-
     self.root.columnconfigure(0, weight=0)
     self.root.columnconfigure(1, weight=0)
     self.root.columnconfigure(2, weight=1)
@@ -187,7 +185,6 @@ class MainWindow():
         self.draw_waiting()
       elif self.capture_target == "result":
         # Back to the beginning state
-        self.capture_target = "style"
         self.reset()
         self.erase()
 
@@ -195,6 +192,7 @@ class MainWindow():
       self.show_last_images()
 
   def reset(self):
+    self.capture_target = "style"
     self.image = None
     self.photo = None
     self.last_style_image = None
@@ -203,7 +201,7 @@ class MainWindow():
     self.canned_index = 0
 
   def erase(self):
-    #self.canvas_style.delete(ALL)
+    self.canvas_style.delete(ALL)
     self.canvas_subject.delete(ALL)
     self.canvas_result.delete(ALL)
 
@@ -213,12 +211,22 @@ class MainWindow():
     print "Using canned style: ", path
     if os.path.isfile(path):
       self.image = Image.open(path)
+
+      width, height = self.image.size
+      window_width = self.canvas_style.winfo_width()
+      window_height = self.canvas_style.winfo_height()
+
+      if width > window_width or height > window_height:
+        self.image.thumbnail((window_width, window_height), Image.ANTIALIAS)
+        width, height = self.image.size
+
       self.last_style_image = self.image
       self.photo = ImageTk.PhotoImage(self.image)
       self.last_style_photo = self.photo
 
-      # margin_left =
-      self.canvas_style.create_image(self.margin_left, self.margin_top, image=self.photo, anchor=NW)
+      margin_left = self.canvas_style.winfo_width() / 2 - width / 2
+      margin_top = self.canvas_style.winfo_height() / 2 - height / 2
+      self.canvas_style.create_image(margin_left, margin_top, image=self.photo, anchor=NW)
     else:
       self.canned_index = 0
 
