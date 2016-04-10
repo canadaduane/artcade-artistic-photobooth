@@ -205,28 +205,33 @@ class MainWindow():
     self.canvas_subject.delete(ALL)
     self.canvas_result.delete(ALL)
 
+  def center_image_on_canvas(self, image, canvas, photo = None):
+    width, height = image.size
+    window_width = canvas.winfo_width()
+    window_height = canvas.winfo_height()
+
+    if width > window_width or height > window_height:
+      image.thumbnail((window_width, window_height), Image.ANTIALIAS)
+      width, height = image.size
+
+    if photo is None:
+      photo = ImageTk.PhotoImage(image)
+
+    x = window_width / 2 - width / 2
+    y = window_height / 2 - height / 2
+    canvas.create_image(x, y, image=photo, anchor=NW)
+
+    return photo
+
   def cycle_canned_styles(self):
     self.canned_index += 1
     path = os.path.join(cwd(), "assets", "style-{0:02}.jpg".format(self.canned_index))
     print "Using canned style: ", path
     if os.path.isfile(path):
       self.image = Image.open(path)
-
-      width, height = self.image.size
-      window_width = self.canvas_style.winfo_width()
-      window_height = self.canvas_style.winfo_height()
-
-      if width > window_width or height > window_height:
-        self.image.thumbnail((window_width, window_height), Image.ANTIALIAS)
-        width, height = self.image.size
-
+      self.photo = self.center_image_on_canvas(self.image, self.canvas_style)
       self.last_style_image = self.image
-      self.photo = ImageTk.PhotoImage(self.image)
       self.last_style_photo = self.photo
-
-      margin_left = self.canvas_style.winfo_width() / 2 - width / 2
-      margin_top = self.canvas_style.winfo_height() / 2 - height / 2
-      self.canvas_style.create_image(margin_left, margin_top, image=self.photo, anchor=NW)
     else:
       self.canned_index = 0
 
@@ -246,11 +251,13 @@ class MainWindow():
   def show_last_images(self):
     if (self.last_style_image is not None and self.capture_target != "style"):
       self.canvas_style.delete(ALL)
-      self.canvas_style.create_image(self.margin_left, self.margin_top, image=self.last_style_photo, anchor=NW)
+      self.center_image_on_canvas(self.last_style_image, self.canvas_style, self.last_style_photo)
+      #self.canvas_style.create_image(self.margin_left, self.margin_top, image=self.last_style_photo, anchor=NW)
     
     if (self.last_subject_image is not None and self.capture_target != "subject"):
       self.canvas_subject.delete(ALL)
-      self.canvas_subject.create_image(self.margin_left, self.margin_top, image=self.last_subject_photo, anchor=NW)
+      self.center_image_on_canvas(self.last_subject_image, self.canvas_subject, self.last_subject_photo)
+      #self.canvas_subject.create_image(self.margin_left, self.margin_top, image=self.last_subject_photo, anchor=NW)
 
   def make_art_request(self):
     self.active_req = ArtRequest(style=self.last_style_image, subject=self.last_subject_image)
