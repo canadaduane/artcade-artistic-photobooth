@@ -8,6 +8,7 @@ import errno
 from re import match
 from math import sin, cos, pi
 from colour import Color
+from glob import glob
 
 def cwd():
   return os.path.dirname(os.path.realpath(__file__))
@@ -85,6 +86,9 @@ class ArtRequest():
       return False
 
   def save(self):
+    # We need the initial directory to be in the "prepare" state so
+    # that the runner doesn't grab the request while we're still load-
+    # ing the directory with images to be processed.
     path = self.request_dir("prepare")
     print "Creating dir: ", path
     self.mkdir_p(path)
@@ -176,8 +180,13 @@ class MainWindow():
     print "key: ", key
     if key == "escape":
       self.root.quit()
-    elif key == "s":
-      self.cycle_canned_styles()
+    elif key == "tab":
+      if self.capture_target == "style":
+        self.cycle_canned_styles()
+      else:
+        self.capture_target = "result"
+        self.active_req = None
+        self.cycle_previous_art()
     elif key == "space":
       # Toggle capture window between style and subject
       if self.capture_target == "style":
@@ -191,7 +200,7 @@ class MainWindow():
         self.make_art_request()
         self.draw_waiting()
       elif self.capture_target == "result":
-        if self.active_req.is_done():
+        if self.active_req is None or self.active_req.is_done():
           # Back to the beginning state
           self.reset()
           self.erase()
@@ -210,6 +219,7 @@ class MainWindow():
     self.last_subject_image = None
     self.active_req = None
     self.canned_index = 0
+    self.previous_art_index = 0
 
   def erase(self):
     self.canvas_style.delete(ALL)
@@ -246,6 +256,51 @@ class MainWindow():
     else:
       self.canned_index = 0
 
+  def get_art_paths(self, root_path):
+    return (
+      os.path.join(root_path, "style.jpg"),
+      os.path.join(root_path, "subject.jpg"),
+      os.path.join(root_path, "output.jpg")
+      )
+
+  def get_previous_available_art(self, index):
+    search_path = os.path.join(cwd(), "images", "*.processing")
+    paths = list(reversed(glob(search_path)))
+    index = index % len(paths)
+    wrapped_paths = (paths+paths)[index:index+len(paths)]
+    skipped = 0
+    for path in wrapped_paths:
+      p1, p2, p3 = self.get_art_paths(path)
+      if os.path.isfile(p1) and \
+         os.path.isfile(p2) and \
+         os.path.isfile(p3):
+        return (path, skipped)
+      skipped += 1
+    return (None, skipped)
+
+  def cycle_previous_art(self):
+    path, skipped = self.get_previous_available_art(self.previous_art_index)
+    self.previous_art_index += skipped + 1
+
+    if path:
+      self.erase()
+      style_path, subject_path, output_path = self.get_art_paths(path)
+
+      self.image = Image.open(style_path)
+      self.photo = self.center_image_on_canvas(self.image, self.canvas_style)
+      self.last_style_image = self.image
+      self.last_style_photo = self.photo
+
+      self.image = Image.open(subject_path)
+      self.photo = self.center_image_on_canvas(self.image, self.canvas_subject)
+      self.last_subject_image = self.image
+      self.last_subject_photo = self.photo
+
+      self.image = Image.open(output_path)
+      self.photo = self.center_image_on_canvas(self.image, self.canvas_result)
+      self.last_result_image = self.image
+      self.last_result_photo = self.photo
+
   def choose_capture_canvas(self):
     if self.capture_target == "style" and self.canned_index == 0:
       return self.canvas_style
@@ -258,12 +313,10 @@ class MainWindow():
     if (self.last_style_image is not None and self.capture_target != "style"):
       self.canvas_style.delete(ALL)
       self.center_image_on_canvas(self.last_style_image, self.canvas_style, self.last_style_photo)
-      #self.canvas_style.create_image(self.margin_left, self.margin_top, image=self.last_style_photo, anchor=NW)
     
     if (self.last_subject_image is not None and self.capture_target != "subject"):
       self.canvas_subject.delete(ALL)
       self.center_image_on_canvas(self.last_subject_image, self.canvas_subject, self.last_subject_photo)
-      #self.canvas_subject.create_image(self.margin_left, self.margin_top, image=self.last_subject_photo, anchor=NW)
 
   def make_art_request(self):
     self.active_req = ArtRequest(style=self.last_style_image, subject=self.last_subject_image)
