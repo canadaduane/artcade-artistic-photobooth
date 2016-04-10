@@ -77,6 +77,13 @@ class ArtRequest():
     else:
       return None
 
+  def is_done(self):
+    status = self.get_status()
+    if status:
+      return status == ArtRequest.maxIterations - 1
+    else:
+      return False
+
   def save(self):
     path = self.request_dir("prepare")
     print "Creating dir: ", path
@@ -184,9 +191,13 @@ class MainWindow():
         self.make_art_request()
         self.draw_waiting()
       elif self.capture_target == "result":
-        # Back to the beginning state
-        self.reset()
-        self.erase()
+        if self.active_req.is_done():
+          # Back to the beginning state
+          self.reset()
+          self.erase()
+          print "Reset!"
+        else:
+          print "Ignoring reset (not done processing active request)"
 
       # Whenever state changes, "freeze" the last frame
       self.show_last_images()
@@ -299,11 +310,11 @@ class MainWindow():
       status = self.active_req.get_status()
       if status:
         print "Status of {0}: {1}".format(self.active_req.uid, status)
-        if status < ArtRequest.maxIterations-1:
+        if self.active_req.is_done():
+          self.draw_result()
+        else:
           percent = float(status) * 100 / ArtRequest.maxIterations + 1
           self.draw_percent_complete(percent)
-        if status == ArtRequest.maxIterations-1:
-          self.draw_result()
       else:
         print "Status of {0} unavailable".format(self.active_req.uid)
 
