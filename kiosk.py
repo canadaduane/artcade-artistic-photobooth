@@ -235,11 +235,6 @@ class MainWindow():
     else:
       self.canned_index = 0
 
-  def capture_to_image(self, frame):
-    """Convert an OpenCV camera frame to a PhotoImage"""
-    cv2img = cv2.cvtColor(cv2.flip(frame, 1), cv2.COLOR_BGR2RGBA)
-    return Image.fromarray(cv2img)
-
   def choose_capture_canvas(self):
     if self.capture_target == "style" and self.canned_index == 0:
       return self.canvas_style
@@ -265,13 +260,9 @@ class MainWindow():
     self.active_req.save()
 
   def draw_result(self):
-    self.result_image = Image.open(self.active_req.output_filepath())
-    self.result_photo = ImageTk.PhotoImage(self.result_image)
     self.canvas_result.delete(ALL)
-    width, height = self.result_image.size
-    x = self.canvas_result.winfo_width() / 2 - width / 2
-    y = self.margin_top + self.scrh/2
-    self.canvas_result.create_image(x, y, image=self.result_photo, anchor=NW)
+    self.result_image = Image.open(self.active_req.output_filepath())
+    self.result_photo = self.center_image_on_canvas(self.result_image, self.canvas_result)
 
   def draw_waiting(self):
     x = self.scrw/2
@@ -319,7 +310,13 @@ class MainWindow():
     # Schedule the next status check
     self.root.after(500, self.check_status)
 
+  def capture_to_image(self, frame):
+    """Convert an OpenCV camera frame to a PhotoImage, flipping horizontally"""
+    cv2img = cv2.cvtColor(cv2.flip(frame, 1), cv2.COLOR_BGR2RGBA)
+    return Image.fromarray(cv2img)
+
   def stream_camera(self):
+    """Endless loop that grabs camera frames and sends them to the active canvas"""
     canvas = self.choose_capture_canvas()
     if canvas:
       canvas.delete(ALL)
