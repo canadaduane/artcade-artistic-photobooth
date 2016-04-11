@@ -5,7 +5,7 @@ import time
 import cv2
 import os
 import errno   
-from re import match
+from re import match, sub
 from math import sin, cos, pi
 from colour import Color
 from glob import glob
@@ -80,8 +80,8 @@ class ArtRequest():
 
   def is_done(self):
     status = self.get_status()
-    if status:
-      return status == ArtRequest.maxIterations - 1
+    if status and os.path.isfile(self.status_filepath()):
+      return status >= ArtRequest.maxIterations - 1
     else:
       return False
 
@@ -190,11 +190,13 @@ class MainWindow():
     elif key == "space":
       # Toggle capture window between style and subject
       if self.capture_target == "style":
-        self.last_style_image = self.image
+        self.last_style_image = self.image.transpose(Image.FLIP_LEFT_RIGHT)
+        self.photo = ImageTk.PhotoImage(self.last_style_image)
         self.last_style_photo = self.photo
         self.capture_target = "subject"
       elif self.capture_target == "subject":
-        self.last_subject_image = self.image
+        self.last_subject_image = self.image.transpose(Image.FLIP_LEFT_RIGHT)
+        self.photo = ImageTk.PhotoImage(self.last_subject_image)
         self.last_subject_photo = self.photo
         self.capture_target = "result"
         self.make_art_request()
@@ -207,9 +209,17 @@ class MainWindow():
           print "Reset!"
         else:
           print "Ignoring reset (not done processing active request)"
-
       # Whenever state changes, "freeze" the last frame
       self.show_last_images()
+    elif key == "backspace":
+      if self.capture_target == "result":
+        self.backspace_count += 1
+        if self.backspace_count >= 3:
+          self.backspace_count = 0
+          self.delete_selected_art()
+          self.capture_target = "result"
+          self.active_req = None
+          self.cycle_previous_art()
 
   def reset(self):
     self.capture_target = "style"
@@ -220,11 +230,22 @@ class MainWindow():
     self.active_req = None
     self.canned_index = 0
     self.previous_art_index = 0
+    self.previous_art_path = None
+    self.backspace_count = 0
 
   def erase(self):
     self.canvas_style.delete(ALL)
     self.canvas_subject.delete(ALL)
     self.canvas_result.delete(ALL)
+
+  def delete_selected_art(self):
+    """Marks the art folder as deleted"""
+    if self.previous_art_path and os.path.isdir(self.previous_art_path):
+      deleted_path_name = sub(r'\.[^\.]+$', '.deleted', self.previous_art_path)
+      os.rename(self.previous_art_path, deleted_path_name)
+      return True
+    else:
+      return False
 
   def center_image_on_canvas(self, image, canvas, photo = None):
     width, height = image.size
@@ -265,7 +286,7 @@ class MainWindow():
 
   def get_previous_available_art(self, index):
     search_path = os.path.join(cwd(), "images", "*.processing")
-    paths = list(reversed(glob(search_path)))
+    paths = list(reversed(sorted(glob(search_path))))
     index = index % len(paths)
     wrapped_paths = (paths+paths)[index:index+len(paths)]
     skipped = 0
@@ -279,12 +300,12 @@ class MainWindow():
     return (None, skipped)
 
   def cycle_previous_art(self):
-    path, skipped = self.get_previous_available_art(self.previous_art_index)
+    self.previous_art_path, skipped = self.get_previous_available_art(self.previous_art_index)
     self.previous_art_index += skipped + 1
 
-    if path:
+    if self.previous_art_path:
       self.erase()
-      style_path, subject_path, output_path = self.get_art_paths(path)
+      style_path, subject_path, output_path = self.get_art_paths(self.previous_art_path)
 
       self.image = Image.open(style_path)
       self.photo = self.center_image_on_canvas(self.image, self.canvas_style)
@@ -322,6 +343,7 @@ class MainWindow():
     self.active_req = ArtRequest(style=self.last_style_image, subject=self.last_subject_image)
     print "ArtRequest ID: ", self.active_req.uid
     self.active_req.save()
+    self.previous_art_path = None
 
   def draw_result(self):
     self.canvas_result.delete(ALL)

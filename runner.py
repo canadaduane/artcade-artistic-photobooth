@@ -30,7 +30,7 @@ while(True):
   print "Checking for requests... ", count
   count += 1
   stdout.flush()
-  files = glob("images/*.request")
+  files = list(reversed(sorted(glob("images/*.request"))))
   for file in files:
     print "request: ", path.basename(file)
     stdout.flush()
