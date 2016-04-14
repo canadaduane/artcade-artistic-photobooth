@@ -60,9 +60,21 @@ class ArtRequest():
     return lines[-n:]
 
   def parse_status_line(self, line):
-    m = match(r"""^Iteration: (\d+), cost: (.+)$""", line)
-    if m:
-      return (int(m.group(1)), float(m.group(2)))
+    iter_m = match(r"""^Iteration: (\d+), cost: (.+)$""", line)
+    status_m = match(r"""^Status: (.+)$""", line)
+    if iter_m:
+      return (int(iter_m.group(1)) + 1, float(iter_m.group(2)))
+    elif status_m:
+      if status_m.group(1) == "starting":
+        return (1, 0.0)
+      elif status_m.group(1) == "done":
+        # We use maxIterations+1 as a sentinel value indicating "completely done"
+        # without this, it's possible the neural_artistic_style.py script can
+        # report its last iteration, meanwhile the output.jpg file has not been
+        # written to disk (or is partially written to disk)
+        return (ArtRequest.maxIterations + 1, 0.0)
+      else:
+        return (None, None)
     else:
       return (None, None)
 
@@ -80,8 +92,8 @@ class ArtRequest():
 
   def is_done(self):
     status = self.get_status()
-    if status and os.path.isfile(self.status_filepath()):
-      return status >= ArtRequest.maxIterations - 1
+    if status:
+      return status >= ArtRequest.maxIterations+1
     else:
       return False
 
@@ -101,7 +113,9 @@ class ArtRequest():
 class MainWindow():
   times=1
   timestart=time.clock()
-  
+  wheel_inner_radius = 50
+  wheel_outer_radius = 150
+
   def __init__(self):
     self.reset()
 
@@ -190,7 +204,7 @@ class MainWindow():
     elif key == "space":
       # Toggle capture window between style and subject
       if self.capture_target == "style":
-        self.last_style_image = self.image.transpose(Image.FLIP_LEFT_RIGHT)
+        self.last_style_image = self.image
         self.photo = ImageTk.PhotoImage(self.last_style_image)
         self.last_style_photo = self.photo
         self.capture_target = "subject"
@@ -350,16 +364,18 @@ class MainWindow():
     self.result_image = Image.open(self.active_req.output_filepath())
     self.result_photo = self.center_image_on_canvas(self.result_image, self.canvas_result)
 
-  def draw_waiting(self):
+  def draw_painting_message(self):
     x = self.scrw/2
     y = self.scrh
+    self.canvas_result.create_text(x + 10, y + MainWindow.wheel_outer_radius + 30,
+      text="Painting...", fill="white", font=("Droid Serif", 32))
+
+  def draw_waiting(self):
     self.canvas_result.delete(ALL)
-    self.canvas_result.create_text(x, y, text="Painting...", fill="white", font=("Droid Serif", 32))
+    self.draw_painting_message()
 
   def draw_percent_complete(self, percent):
     self.canvas_result.delete(ALL)
-    inner_radius = 50
-    outer_radius = 150
     x = self.scrw/2
     y = self.scrh
     c = Color("blue")
@@ -368,17 +384,20 @@ class MainWindow():
       # dark "anti-aliasing" line
       d = Color(hue = c.hue, saturation = c.saturation, luminance = c.luminance * 0.55)
       self.canvas_result.create_line(
-        x + cos(radians)*(inner_radius-4), y + sin(radians)*(inner_radius-4),
-        x + cos(radians)*(outer_radius+2), y + sin(radians)*(outer_radius+2),
+        x + cos(radians)*(MainWindow.wheel_inner_radius-4),
+        y + sin(radians)*(MainWindow.wheel_inner_radius-4),
+        x + cos(radians)*(MainWindow.wheel_outer_radius+2),
+        y + sin(radians)*(MainWindow.wheel_outer_radius+2),
         fill=d.hex, width=3.0, smooth=1)
       # regular line
       self.canvas_result.create_line(
-        x + cos(radians)*inner_radius, y + sin(radians)*inner_radius,
-        x + cos(radians)*outer_radius, y + sin(radians)*outer_radius,
+        x + cos(radians)*MainWindow.wheel_inner_radius,
+        y + sin(radians)*MainWindow.wheel_inner_radius,
+        x + cos(radians)*MainWindow.wheel_outer_radius,
+        y + sin(radians)*MainWindow.wheel_outer_radius,
         fill=c.hex, width=2.0, smooth=1)
       c.hue += 0.01
-
-    self.canvas_result.create_text(x + 10, y + outer_radius + 30, text="Painting...", fill="white", font=("Droid Serif", 32))
+    self.draw_painting_message()
 
   def check_status(self):
     if self.active_req:

@@ -17,13 +17,17 @@ def process(filepath):
   output_path = path.join(processing, "output.jpg")
   stdout_path = path.join(processing, "stdout.txt")
 
+  with open(stdout_path, "a") as f:
+    f.write("Status: starting\n")
+
   cmd = "python -u /style/neural_artistic_style.py " \
     "--style {0} --subject {1} --output {2} " \
     "--network /style/imagenet-vgg-verydeep-19.mat " \
     "--iterations 200 " \
     "".format(style_path, subject_path, output_path)
-  with open(stdout_path, 'w') as f:
+  with open(stdout_path, 'a') as f:
     call(cmd.split(), stdout=f, bufsize=1)
+    f.write("Status: done\n")
 
 count = 0
 while(True):
