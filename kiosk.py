@@ -246,6 +246,7 @@ class MainWindow():
     self.previous_art_index = 0
     self.previous_art_path = None
     self.backspace_count = 0
+    self.wheel_extender_size = 0
 
   def erase(self):
     self.canvas_style.delete(ALL)
@@ -374,27 +375,35 @@ class MainWindow():
     self.canvas_result.delete(ALL)
     self.draw_painting_message()
 
-  def draw_percent_complete(self, percent):
+  def draw_percent_complete(self, percent, first_tick_percent=2.0):
     self.canvas_result.delete(ALL)
     x = self.scrw/2
     y = self.scrh
     c = Color("blue")
+    inr = MainWindow.wheel_inner_radius
+
+    # Extend the first "spoke" in the wheel as we wait for actual status data
+    if percent <= first_tick_percent and self.wheel_extender_size < (MainWindow.wheel_outer_radius - inr):
+      outr = inr + self.wheel_extender_size
+    else:
+      outr = MainWindow.wheel_outer_radius
+
     for i in range(int(percent)):
       radians = float(i) * pi * 2 / 100.0
       # dark "anti-aliasing" line
       d = Color(hue = c.hue, saturation = c.saturation, luminance = c.luminance * 0.55)
       self.canvas_result.create_line(
-        x + cos(radians)*(MainWindow.wheel_inner_radius-4),
-        y + sin(radians)*(MainWindow.wheel_inner_radius-4),
-        x + cos(radians)*(MainWindow.wheel_outer_radius+2),
-        y + sin(radians)*(MainWindow.wheel_outer_radius+2),
+        x + cos(radians)*(inr-4),
+        y + sin(radians)*(inr-4),
+        x + cos(radians)*(outr+2),
+        y + sin(radians)*(outr+2),
         fill=d.hex, width=3.0, smooth=1)
       # regular line
       self.canvas_result.create_line(
-        x + cos(radians)*MainWindow.wheel_inner_radius,
-        y + sin(radians)*MainWindow.wheel_inner_radius,
-        x + cos(radians)*MainWindow.wheel_outer_radius,
-        y + sin(radians)*MainWindow.wheel_outer_radius,
+        x + cos(radians)*inr,
+        y + sin(radians)*inr,
+        x + cos(radians)*outr,
+        y + sin(radians)*outr,
         fill=c.hex, width=2.0, smooth=1)
       c.hue += 0.01
     self.draw_painting_message()
@@ -408,12 +417,13 @@ class MainWindow():
           self.draw_result()
         else:
           percent = float(status) * 100 / ArtRequest.maxIterations + 1
+          self.wheel_extender_size += 2
           self.draw_percent_complete(percent)
       else:
         print "Status of {0} unavailable".format(self.active_req.uid)
 
     # Schedule the next status check
-    self.root.after(500, self.check_status)
+    self.root.after(100, self.check_status)
 
   def capture_to_image(self, frame):
     """Convert an OpenCV camera frame to a PhotoImage, flipping horizontally"""
