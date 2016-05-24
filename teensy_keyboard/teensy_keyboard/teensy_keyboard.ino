@@ -1,0 +1,39 @@
+#include "Switch.h"
+
+int counter = 0;
+
+const int leftPin = 15;
+const int rightPin = 11;
+const int actionPin = 14;
+
+Switch left = Switch(leftPin);
+Switch right = Switch(rightPin);
+Switch action = Switch(actionPin);
+
+void setup() { }
+
+void loop() {
+  left.poll();
+  if (left.pushed()) {
+    Keyboard.set_key1(KEY_LEFT);
+    Keyboard.send_now();
+    Keyboard.set_key1(0);
+    Keyboard.send_now();
+  }
+
+  right.poll();
+  if (right.pushed()) {
+    Keyboard.set_key1(KEY_RIGHT);
+    Keyboard.send_now();
+    Keyboard.set_key1(0);
+    Keyboard.send_now();
+  }
+
+  action.poll();
+  if (action.pushed()) {
+    Keyboard.set_key1(KEY_SPACE);
+    Keyboard.send_now();
+    Keyboard.set_key1(0);
+    Keyboard.send_now();
+  }
+}
