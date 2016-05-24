@@ -184,6 +184,8 @@ class MainWindow():
     self.root.bind("<Key>", self.key_callback)
     self.root.bind("<Button-1>", self.click_callback)
 
+    self.available_art = self.get_available_art()
+
     self.root.mainloop()
 
   def click_callback(self, event):
@@ -192,15 +194,23 @@ class MainWindow():
   def key_callback(self, event):
     key = event.keysym.lower()
     print "key: ", key
+
+    # reset triple-backspace keypress counter if not backspace
+    if key != "backspace":
+      self.backspace_count = 0
+
     if key == "escape":
       self.root.quit()
-    elif key == "tab":
-      if self.capture_target == "style":
-        self.cycle_canned_styles()
-      else:
-        self.capture_target = "result"
-        self.active_req = None
-        self.cycle_previous_art()
+    elif key == "left":
+      self.capture_target = "style"
+      self.active_req = None
+      self.cycle_art(-1)
+      self.draw_art_number()
+    elif key == "right":
+      self.capture_target = "style"
+      self.active_req = None
+      self.cycle_art(1)
+      self.draw_art_number()
     elif key == "space":
       # Toggle capture window between style and subject
       if self.capture_target == "style":
@@ -226,14 +236,14 @@ class MainWindow():
       # Whenever state changes, "freeze" the last frame
       self.show_last_images()
     elif key == "backspace":
-      if self.capture_target == "result":
+      if self.art_path:
         self.backspace_count += 1
         if self.backspace_count >= 3:
           self.backspace_count = 0
           self.delete_selected_art()
           self.capture_target = "result"
           self.active_req = None
-          self.cycle_previous_art()
+          self.cycle_art(0)
 
   def reset(self):
     self.capture_target = "style"
@@ -242,9 +252,8 @@ class MainWindow():
     self.last_style_image = None
     self.last_subject_image = None
     self.active_req = None
-    self.canned_index = 0
-    self.previous_art_index = 0
-    self.previous_art_path = None
+    self.art_index = -1
+    self.art_path = None
     self.backspace_count = 0
     self.wheel_extender_size = 0
 
@@ -255,9 +264,10 @@ class MainWindow():
 
   def delete_selected_art(self):
     """Marks the art folder as deleted"""
-    if self.previous_art_path and os.path.isdir(self.previous_art_path):
-      deleted_path_name = sub(r'\.[^\.]+$', '.deleted', self.previous_art_path)
-      os.rename(self.previous_art_path, deleted_path_name)
+    if self.art_path and os.path.isdir(self.art_path):
+      deleted_path_name = sub(r'\.[^\.]+$', '.deleted', self.art_path)
+      os.rename(self.art_path, deleted_path_name)
+      del self.available_art[self.art_index]
       return True
     else:
       return False
@@ -280,18 +290,6 @@ class MainWindow():
 
     return photo
 
-  def cycle_canned_styles(self):
-    self.canned_index += 1
-    path = os.path.join(cwd(), "assets", "style-{0:02}.jpg".format(self.canned_index))
-    print "Using canned style: ", path
-    if os.path.isfile(path):
-      self.image = Image.open(path)
-      self.photo = self.center_image_on_canvas(self.image, self.canvas_style)
-      self.last_style_image = self.image
-      self.last_style_photo = self.photo
-    else:
-      self.canned_index = 0
-
   def get_art_paths(self, root_path):
     return (
       os.path.join(root_path, "style.jpg"),
@@ -299,46 +297,65 @@ class MainWindow():
       os.path.join(root_path, "output.jpg")
       )
 
-  def get_previous_available_art(self, index):
+  def get_available_art(self):
     search_path = os.path.join(cwd(), "images", "*.processing")
-    paths = list(reversed(sorted(glob(search_path))))
-    index = index % len(paths)
-    wrapped_paths = (paths+paths)[index:index+len(paths)]
-    skipped = 0
-    for path in wrapped_paths:
+    print "Getting available art at ", search_path
+    paths = list(sorted(glob(search_path)))
+    available = []
+    count = 0
+    for path in paths:
       p1, p2, p3 = self.get_art_paths(path)
       if os.path.isfile(p1) and \
          os.path.isfile(p2) and \
          os.path.isfile(p3):
-        return (path, skipped)
-      skipped += 1
-    return (None, skipped)
+        available.append(path)
+      count += 1
+      if (count % 10 == 0):
+        print "  loaded ", count, " images"
+    return available
 
-  def cycle_previous_art(self):
-    self.previous_art_path, skipped = self.get_previous_available_art(self.previous_art_index)
-    self.previous_art_index += skipped + 1
-
-    if self.previous_art_path:
+  def show_art(self, art_path):
+    if art_path:
       self.erase()
-      style_path, subject_path, output_path = self.get_art_paths(self.previous_art_path)
+      style_path, subject_path, output_path = self.get_art_paths(art_path)
 
       self.image = Image.open(style_path)
       self.photo = self.center_image_on_canvas(self.image, self.canvas_style)
       self.last_style_image = self.image
       self.last_style_photo = self.photo
 
-      self.image = Image.open(subject_path)
-      self.photo = self.center_image_on_canvas(self.image, self.canvas_subject)
-      self.last_subject_image = self.image
+      self.extra_image = Image.open(subject_path)
+      self.photo = self.center_image_on_canvas(self.extra_image, self.canvas_subject)
+      self.last_subject_image = self.extra_image
       self.last_subject_photo = self.photo
 
-      self.image = Image.open(output_path)
-      self.photo = self.center_image_on_canvas(self.image, self.canvas_result)
-      self.last_result_image = self.image
+      self.extra_image = Image.open(output_path)
+      self.photo = self.center_image_on_canvas(self.extra_image, self.canvas_result)
+      self.last_result_image = self.extra_image
       self.last_result_photo = self.photo
 
+
+  def cycle_art(self, direction = 1):
+    self.art_index += direction
+
+    if (self.art_index < -1):
+      self.art_index = len(self.available_art) - 1
+    if (self.art_index >= len(self.available_art)):
+      self.art_index = -1
+
+    if self.art_index == -1:
+        # Back to the beginning state
+        self.reset()
+        self.erase()
+        print "Reset! (cycle)"
+    else:
+      self.art_path = self.available_art[self.art_index]
+      print "art_index: ", self.art_index
+      print "art_path: ", self.art_path
+      self.show_art(self.art_path)
+
   def choose_capture_canvas(self):
-    if self.capture_target == "style" and self.canned_index == 0:
+    if self.capture_target == "style" and not self.art_path:
       return self.canvas_style
     elif self.capture_target == "subject":
       return self.canvas_subject
@@ -358,7 +375,7 @@ class MainWindow():
     self.active_req = ArtRequest(style=self.last_style_image, subject=self.last_subject_image)
     print "ArtRequest ID: ", self.active_req.uid
     self.active_req.save()
-    self.previous_art_path = None
+    self.art_path = None
 
   def draw_result(self):
     self.canvas_result.delete(ALL)
@@ -370,6 +387,15 @@ class MainWindow():
     y = self.scrh
     self.canvas_result.create_text(x + 10, y + MainWindow.wheel_outer_radius + 30,
       text="Painting...", fill="white", font=("Droid Serif", 32))
+
+  def draw_art_number(self, number=None):
+    x = 0
+    y = 0
+    if number == None:
+      number = self.art_index
+    if number >= 0:
+      self.canvas_result.create_text(x + 100, y + 30,
+        text="Paiting #" + str(number+1), fill="#CCC", font=("Droid Serif", 24))
 
   def draw_waiting(self):
     self.canvas_result.delete(ALL)
