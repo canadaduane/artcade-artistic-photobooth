@@ -2,8 +2,8 @@
 
 int counter = 0;
 
-const int leftPin = 15;
-const int rightPin = 11;
+const int leftPin = 11;
+const int rightPin = 15;
 const int actionPin = 14;
 
 Switch left = Switch(leftPin);
@@ -11,6 +11,8 @@ Switch right = Switch(rightPin);
 Switch action = Switch(actionPin);
 
 void setup() { }
+
+uint32_t longPressedAt = 0;
 
 void loop() {
   left.poll();
@@ -31,9 +33,21 @@ void loop() {
 
   action.poll();
   if (action.pushed()) {
-    Keyboard.set_key1(KEY_SPACE);
-    Keyboard.send_now();
-    Keyboard.set_key1(0);
-    Keyboard.send_now();
+    longPressedAt = millis() + 5000;
+  }
+
+  if (action.released()) {
+    uint32_t now = millis();
+    if (now >= longPressedAt) {
+      Keyboard.set_key1(KEY_ENTER);
+      Keyboard.send_now();
+      Keyboard.set_key1(0);
+      Keyboard.send_now();
+    } else {
+      Keyboard.set_key1(KEY_SPACE);
+      Keyboard.send_now();
+      Keyboard.set_key1(0);
+      Keyboard.send_now();
+    }
   }
 }
