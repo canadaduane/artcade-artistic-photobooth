@@ -445,6 +445,12 @@ class MainWindow():
     if self.active_req:
       status = self.active_req.get_status()
       if status:
+        # Register this painting in our list of paintings that can be cycled
+        maybe_new_path = self.active_req.request_dir("processing")
+        if maybe_new_path not in self.available_art:
+          self.available_art.append(maybe_new_path)
+          print "Added new art path to available_art: {0}".format(maybe_new_path)
+
         print "Status of {0}: {1}".format(self.active_req.uid, status)
         if self.active_req.is_done():
           self.draw_result()
