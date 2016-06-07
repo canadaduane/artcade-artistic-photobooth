@@ -33,7 +33,7 @@ void loop() {
 
   action.poll();
   if (action.pushed()) {
-    longPressedAt = millis() + 5000;
+    longPressedAt = millis() + 2000;
   }
 
   if (action.released()) {

@@ -2,6 +2,7 @@ FROM ubuntu:14.04
 MAINTAINER Duane Johnson <duane.johnson@gmail.com>
 
 ADD downloads/cuda_7.5.18_linux.run /tmp/cuda_install/cuda.run
+ADD downloads/NVIDIA-Linux-x86_64-352.63.run /tmp/cuda_install/driver.run
 
 ENV INSTALL_PREFIX /usr/local
 ENV CUDA_PREFIX /usr/local/cuda-7.5
@@ -23,13 +24,12 @@ RUN apt-get update && apt-get install -y --force-yes \
 RUN cd /tmp/cuda_install && \
 # Make the run file executable and extract
   chmod +x cuda.run && sync && \
+  chmod +x driver.run && sync && \
   ./cuda.run -extract=`pwd` && \
 # Install CUDA drivers (silent, no kernel)
-  ./NVIDIA-Linux-x86_64-*.run -s --no-kernel-module && \
+  ./driver.run -s --no-kernel-module && \
 # Install toolkit (silent)  
-  ./cuda-linux64-rel-*.run -noprompt && \
-# Clean up
-  rm -rf *
+  ./cuda-linux64-rel-*.run -noprompt
 # Add to path
 ENV PATH=/usr/local/cuda-7.5/bin:$PATH \
   LD_LIBRARY_PATH=/usr/local/cuda-7.5/lib64:$LD_LIBRARY_PATH
@@ -42,8 +42,7 @@ RUN easy_install cython
 ADD cudarray /tmp/cudarray
 RUN cd /tmp/cudarray && \
   make && make install && \
-  python setup.py install && \
-  rm -rf *
+  python setup.py install
 
 # Install Pillow image library dependencies
 # RUN apt-get update && apt-get install -y --force-yes \
