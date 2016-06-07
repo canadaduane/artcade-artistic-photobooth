@@ -211,6 +211,13 @@ class MainWindow():
       self.active_req = None
       self.cycle_art(1)
       self.draw_art_number()
+    elif key == "enter":
+      self.capture_target = "style"
+      self.active_req = None
+      # Back to the beginning state
+      self.reset()
+      self.erase()
+      print "Reset! (enter key)"
     elif key == "space":
       # Toggle capture window between style and subject
       if self.capture_target == "style":
