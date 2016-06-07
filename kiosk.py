@@ -211,13 +211,13 @@ class MainWindow():
       self.active_req = None
       self.cycle_art(1)
       self.draw_art_number()
-    elif key == "enter":
+    elif key == "return":
       self.capture_target = "style"
       self.active_req = None
       # Back to the beginning state
       self.reset()
       self.erase()
-      print "Reset! (enter key)"
+      print "Reset! (return key)"
     elif key == "space":
       # Toggle capture window between style and subject
       if self.capture_target == "style":
@@ -402,7 +402,7 @@ class MainWindow():
       number = self.art_index
     if number >= 0:
       self.canvas_result.create_text(x + 100, y + 30,
-        text="Paiting #" + str(number+1), fill="#CCC", font=("Droid Serif", 24))
+        text="Painting #" + str(number+1), fill="#CCC", font=("Droid Serif", 24))
 
   def draw_waiting(self):
     self.canvas_result.delete(ALL)
