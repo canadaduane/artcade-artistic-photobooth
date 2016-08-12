@@ -37,7 +37,7 @@ class ImageScanner(object):
   def scan(self, count):
     # TODO: Do something smarter than loading paths to every single picture ever all at once. Also use pathlib
     # everywhere instead of just some places
-    return [f.relative_to(self.directory).path for f in sorted(self.directory.glob(self._glob_pattern))[-count:]]
+    return [str(f.relative_to(self.directory)) for f in sorted(self.directory.glob(self._glob_pattern))[-count:]]
 
 
 class WebInterface(object):
