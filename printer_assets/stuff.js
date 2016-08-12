@@ -1,7 +1,7 @@
 
 console.log('yo');
 
-Image = React.createClass({
+ImageGrid = React.createClass({
   getInitialState: function() {
     return {
       status: {
@@ -19,10 +19,23 @@ Image = React.createClass({
   },
 
   render: function() {
-    return <div>weeee! status is {JSON.stringify(this.state.status)}</div>;
+    return <div>
+      <div className="images">{
+        this.state.images.map(function(path) {
+          return <Image path={path}/>;
+        })
+      }</div>
+    </div>;
+  }
+});
+
+
+Image = React.createClass({
+  render: function() {
+    return <div><img src={this.props.path} width="200px"/></div>
   }
 });
 
 
 
-ReactDOM.render(<Image/>, document.getElementById('stuff'));
+ReactDOM.render(<ImageGrid/>, document.getElementById('stuff'));
