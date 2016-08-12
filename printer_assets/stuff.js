@@ -57,7 +57,7 @@ var ImageGrid = React.createClass({
     </div>;
   },
 
-  componentWillUnmount = function() {
+  componentWillUnmount: function() {
     this.noMoreRequests = true;
     if (this.currentTimeout != null) {
       clearTimeout(this.currentTimeout);
