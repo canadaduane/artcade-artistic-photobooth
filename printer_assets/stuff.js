@@ -70,21 +70,53 @@ var ImageGrid = React.createClass({
 
 
 var Image = React.createClass({
+  getInitialState: function() {
+    return {
+      printing: false,
+      printed: false
+    };
+  },
+
   printImage: function(e) {
     e.preventDefault();
+
+    if (this.state.printing || this.state.printed) {
+      return;
+    }
+
     console.log("starting...");
+    this.setState({printing: true});
     $.ajax('/print/' + this.props.path, {
       type: 'POST',
       timeout: 30000,
-      success: function() {
-        console.log('printed!');
+      success: () => {
+        this.setState({printing: false, printed: true});
+        setTimeout(() => {
+          this.setState({printed: false});
+        }, 3000);
+      },
+      error: () = {
+        // TODO: should probably tell them something went wrong
+        this.setState({printing: false});
       }
     });
   },
 
   render: function() {
-    return <div>
-      <img onClick={this.printImage} src={"/images/" + this.props.path} width="200px"/>
+    var overlayClass = "overlay";
+    var overlayText = "";
+
+    if (this.state.printing) {
+      overlayClass += " visible";
+      overlayText = "Printing...";
+    } else if (this.state.printed) {
+      overlayClass += " visible";
+      overlayText = "Done";
+    }
+
+    return <div className="image">
+      <img onClick={this.printImage} src={"/images/" + this.props.path}/>
+      <div className={overlayClass}>{overlayText}</div>
     </div>;
   }
 });
