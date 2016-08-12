@@ -74,7 +74,7 @@ class WebInterface(object):
 
   def _print(self, path):
     actual_path = flask.safe_join(self._image_scanner.directory, path)
-    # self._printer.print_picture(actual_path)
+    self._printer.print_picture(actual_path)
     return flask.jsonify(status='ok')
 
   def _asset(self, path):
