@@ -73,7 +73,8 @@ var Image = React.createClass({
   getInitialState: function() {
     return {
       printing: false,
-      printed: false
+      printed: false,
+      failed: false
     };
   },
 
@@ -82,7 +83,7 @@ var Image = React.createClass({
 
     console.log("print requested");
 
-    if (this.state.printing || this.state.printed) {
+    if (this.state.printing || this.state.printed || this.state.failed) {
       return;
     }
 
@@ -99,8 +100,10 @@ var Image = React.createClass({
         }, 15000);
       },
       error: () => {
-        // TODO: should probably tell them something went wrong
-        this.setState({printing: false});
+        this.setState({printing: false, failed: true});
+        setTimeout(() => {
+          this.setState({failed: false});
+        }, 4000);
       }
     });
   },
@@ -115,6 +118,9 @@ var Image = React.createClass({
     } else if (this.state.printed) {
       overlayClass += " visible";
       overlayText = "Done.";
+    } else if (this.state.failed) {
+      overlayClass += " visible";
+      overlayText = "Couldn't print.";
     }
 
     return <div className="image">
