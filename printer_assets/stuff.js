@@ -1,6 +1,4 @@
 
-console.log('yo');
-
 ImageGrid = React.createClass({
   getInitialState: function() {
     return {
@@ -15,7 +13,7 @@ ImageGrid = React.createClass({
       success: (data) => {
         this.setState({status: data});
       }
-    })
+    });
   },
 
   render: function() {
