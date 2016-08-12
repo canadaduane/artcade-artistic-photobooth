@@ -95,7 +95,7 @@ var Image = React.createClass({
           this.setState({printed: false});
         }, 3000);
       },
-      error: () = {
+      error: () => {
         // TODO: should probably tell them something went wrong
         this.setState({printing: false});
       }
