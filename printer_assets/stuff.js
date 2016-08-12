@@ -96,7 +96,7 @@ var Image = React.createClass({
         this.setState({printing: false, printed: true});
         setTimeout(() => {
           this.setState({printed: false});
-        }, 5000);
+        }, 10000);
       },
       error: () => {
         // TODO: should probably tell them something went wrong
