@@ -66,7 +66,7 @@ class WebInterface(object):
     return flask.send_file(os.path.join(ASSET_DIR, 'index.html'))
 
   def _status(self):
-    files = _image_scanner.scan(500)
+    files = _image_scanner.scan(50)
     return flask.jsonify(images=files)
 
   def _image(self, path):
