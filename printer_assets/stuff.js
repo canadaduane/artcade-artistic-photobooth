@@ -1,5 +1,5 @@
 
-ImageGrid = React.createClass({
+Stuff = React.createClass({
   getInitialState: function() {
     return {
       status: {
