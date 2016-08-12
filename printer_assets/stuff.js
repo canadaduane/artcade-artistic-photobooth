@@ -29,8 +29,21 @@ var ImageGrid = React.createClass({
 
 
 var Image = React.createClass({
+  handleImage: function() {
+    $.ajax('/print/' + this.props.path, {
+      type: 'POST',
+      success: function() {
+        console.log('printed!');
+      }
+    });
+  },
+
   render: function() {
-    return <div><img src={"/images/" + this.props.path} width="200px"/></div>
+    return <div>
+      <a onclick={this.printImage}>
+        <img src={"/images/" + this.props.path} width="200px"/>
+      </a>
+    </div>;
   }
 });
 
