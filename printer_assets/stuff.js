@@ -20,7 +20,7 @@ var ImageGrid = React.createClass({
     return <div>
       <div className="images">{
         this.state.status.images.map(function(path) {
-          return <Image path={path}/>;
+          return <Image key={path} path={path}/>;
         })
       }</div>
     </div>;
@@ -30,7 +30,7 @@ var ImageGrid = React.createClass({
 
 var Image = React.createClass({
   render: function() {
-    return <div><img src={this.props.path} width="200px"/></div>
+    return <div><img src={"/images/" + this.props.path} width="200px"/></div>
   }
 });
 
