@@ -40,7 +40,7 @@ var Image = React.createClass({
 
   render: function() {
     return <div>
-      <a onclick={this.printImage}>
+      <a onClick={this.printImage}>
         <img src={"/images/" + this.props.path} width="200px"/>
       </a>
     </div>;
