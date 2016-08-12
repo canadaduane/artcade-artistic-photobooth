@@ -7,6 +7,7 @@
 
 .image {
   position: relative;
+  margin: 0.3em;
 }
 
 .image img {
@@ -27,8 +28,8 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  transition: background-color 0.25s, color: 0.25s;
-  -webkit-transition: background-color 0.25s, color: 0.25s;
+  transition: background-color 0.25s, color 0.25s;
+  -webkit-transition: background-color 0.25s, color 0.25s;
   color: rgba(100, 100, 100, 0);
 }
 
