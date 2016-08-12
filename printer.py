@@ -65,7 +65,7 @@ class WebInterface(object):
     return flask.jsonify(images=files)
 
   def _image(self, path):
-    flask.send_from_directory(self._image_scanner.directory, path)
+    return flask.send_from_directory(self._image_scanner.directory, path)
 
   def _print(self, path):
     actual_path = flask.safe_join(self._image_scanner.directory, path)
