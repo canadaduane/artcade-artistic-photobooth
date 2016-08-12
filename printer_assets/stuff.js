@@ -7,6 +7,5 @@ Image = React.createClass({
   }
 });
 
-window.loadStuff = function() {
-  React.render(<Image/>, document.getElementById('stuff'));
-}
+
+React.render(<Image/>, document.getElementById('stuff'));
