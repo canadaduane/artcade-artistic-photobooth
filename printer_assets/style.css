@@ -12,11 +12,15 @@ body {
 
 .image {
   position: relative;
-  margin: 0.3em;
+  margin: 0.5em;
+  -webkit-flex: auto;
+  flex: auto;
+  width: 350px;
 }
 
 .image img {
-  width: 350px;
+  width: 100%;
+  height: auto;
 }
 
 .overlay {
