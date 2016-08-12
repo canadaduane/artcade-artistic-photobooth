@@ -1,5 +1,5 @@
 
-Stuff = React.createClass({
+var ImageGrid = React.createClass({
   getInitialState: function() {
     return {
       status: {
@@ -28,7 +28,7 @@ Stuff = React.createClass({
 });
 
 
-Image = React.createClass({
+var Image = React.createClass({
   render: function() {
     return <div><img src={this.props.path} width="200px"/></div>
   }
