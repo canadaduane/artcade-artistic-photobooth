@@ -1,5 +1,27 @@
 .images {
   display: flex;
+  display: -webkit-box;
   flex-wrap: wrap;
   width: 100%;
+}
+
+.image {
+  position: relative;
+}
+
+.printing {
+  position: absolute;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(210, 210, 210, 0.9);
+  font-size: 1.5em;
+  color: #666;
+  font-weight: bold;
+  font-family: sans-serif;
+  display: flex;
+  display: -webkit-box;
+  justify-content: center;
+  align-items: center;
 }
