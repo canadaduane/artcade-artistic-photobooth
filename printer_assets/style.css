@@ -1,6 +1,11 @@
+body {
+  background-color: #e2e2e2;
+}
+
 .images {
   display: -webkit-box;
   display: flex;
+  -webkit-flex-wrap: wrap;
   flex-wrap: wrap;
   width: 100%;
 }
@@ -26,7 +31,9 @@
   font-family: sans-serif;
   display: -webkit-box;
   display: flex;
+  -webkit-justify-content: center;
   justify-content: center;
+  -webkit-align-items: center;
   align-items: center;
   transition: background-color 0.25s, color 0.25s;
   -webkit-transition: background-color 0.25s, color 0.25s;
