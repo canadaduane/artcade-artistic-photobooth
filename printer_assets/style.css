@@ -3,7 +3,7 @@ body {
 }
 
 .images {
-  display: -webkit-box;
+  display: -webkit-flex;
   display: flex;
   -webkit-flex-wrap: wrap;
   flex-wrap: wrap;
@@ -29,7 +29,7 @@ body {
   font-size: 2em;
   font-weight: bold;
   font-family: sans-serif;
-  display: -webkit-box;
+  display: -webkit-flex;
   display: flex;
   -webkit-justify-content: center;
   justify-content: center;

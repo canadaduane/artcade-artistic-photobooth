@@ -114,7 +114,7 @@ var Image = React.createClass({
       overlayText = "Printing...";
     } else if (this.state.printed) {
       overlayClass += " visible";
-      overlayText = "Done";
+      overlayText = "Printed!";
     }
 
     return <div className="image">
