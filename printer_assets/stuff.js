@@ -20,6 +20,7 @@ var ImageGrid = React.createClass({
     console.log('starting status request');
 
     this.currentRequest = $.ajax('/status', {
+      timeout: 30000,
       success: (data) => {
         console.log('status request succeeded.');
         this.currentRequest = null;
@@ -74,6 +75,7 @@ var Image = React.createClass({
     console.log("starting...");
     $.ajax('/print/' + this.props.path, {
       type: 'POST',
+      timeout: 30000,
       success: function() {
         console.log('printed!');
       }
