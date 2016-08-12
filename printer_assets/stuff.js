@@ -19,7 +19,7 @@ var ImageGrid = React.createClass({
   render: function() {
     return <div>
       <div className="images">{
-        this.state.images.map(function(path) {
+        this.state.status.images.map(function(path) {
           return <Image path={path}/>;
         })
       }</div>
