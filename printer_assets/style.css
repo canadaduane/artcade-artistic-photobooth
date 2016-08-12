@@ -12,7 +12,7 @@ body {
 
 .image {
   position: relative;
-  margin: 0.5em;
+  margin: 1em;
   -webkit-flex: auto;
   flex: auto;
   width: 350px;
