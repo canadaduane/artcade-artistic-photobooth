@@ -80,11 +80,14 @@ var Image = React.createClass({
   printImage: function(e) {
     e.preventDefault();
 
+    console.log("print requested");
+
     if (this.state.printing || this.state.printed) {
       return;
     }
 
-    console.log("starting...");
+    console.log("printing...");
+
     this.setState({printing: true});
     $.ajax('/print/' + this.props.path, {
       type: 'POST',
