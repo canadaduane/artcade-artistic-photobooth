@@ -29,7 +29,7 @@ var ImageGrid = React.createClass({
 
 
 var Image = React.createClass({
-  handleImage: function(e) {
+  printImage: function(e) {
     e.preventDefault();
     console.log("starting...");
     $.ajax('/print/' + this.props.path, {
