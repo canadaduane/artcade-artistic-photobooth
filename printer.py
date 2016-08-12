@@ -5,6 +5,7 @@ import os.path
 import glob
 import flask
 import pathlib2
+import subprocess
 
 
 ASSET_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'printer_assets')
