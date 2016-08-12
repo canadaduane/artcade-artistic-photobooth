@@ -42,9 +42,7 @@ var Image = React.createClass({
 
   render: function() {
     return <div>
-      <a href="#" onClick={this.printImage}>
-        <img src={"/images/" + this.props.path} width="200px"/>
-      </a>
+      <img onClick={this.printImage} src={"/images/" + this.props.path} width="200px"/>
     </div>;
   }
 });
