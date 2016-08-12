@@ -7,6 +7,9 @@ import flask
 import pathlib2
 
 
+ASSET_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'printer_assets')
+
+
 class Printer(object):
   def __init__(self):
     self._connection = cups.Connection()
@@ -56,9 +59,10 @@ class WebInterface(object):
     app.route('/status')(self._status)
     app.route('/images/<path:path>')(self._image)
     app.route('/print/<path:path>', methods=['POST'])(self._print)
+    app.route('/assets/<path:path>')(self._asset)
 
   def _index(self):
-    pass
+    return flask.send_file(os.path.join(ASSET_DIR, 'index.html'))
 
   def _status(self):
     files = _image_scanner.scan(50)
@@ -71,6 +75,9 @@ class WebInterface(object):
     actual_path = flask.safe_join(self._image_scanner.directory, path)
     self._printer.print_picture(actual_path)
     return flask.jsonify(status='ok')
+
+  def _asset(self, path):
+    return flask.send_from_directory(ASSET_DIR, path)
 
 
 _image_scanner = ImageScanner(os.getenv('ARTCADE_IMAGE_DIR'), os.getenv('ARTCADE_IMAGE_GLOB'))
