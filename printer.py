@@ -21,7 +21,7 @@ class Printer(object):
     # This resolution is slightly taller than 6:4 because the printer crops just a little too much of the picture when
     # printing full bleed. This forces it to crop mostly whitespace on the sides of the image. The top and bottom still
     # get cropped, but nothing we can do about that.
-    subprocess.check_call['convert', path, '-resize', '2048x1400^', '-gravity', 'center', '-extent', '2048x1400', scaled_file]
+    subprocess.check_call(['convert', path, '-resize', '2048x1400^', '-gravity', 'center', '-extent', '2048x1400', scaled_file])
 
     printer_name = self._connection.getPrinters().keys()[0]
     self._connection.printFile(printer_name, scaled_file, 'print', {
