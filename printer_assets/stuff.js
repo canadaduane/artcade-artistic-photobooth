@@ -8,4 +8,4 @@ Image = React.createClass({
 });
 
 
-React.render(<Image/>, document.getElementById('stuff'));
+ReactDOM.render(<Image/>, document.getElementById('stuff'));
