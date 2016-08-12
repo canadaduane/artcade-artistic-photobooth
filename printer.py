@@ -58,7 +58,7 @@ class WebInterface(object):
 
   def _status(self):
     files = _image_scanner.scan(50)
-
+    return flask.jsonify(images=files)
 
   def _image(self, path):
     flask.send_from_directory(self._image_scanner.directory, path)
