@@ -57,7 +57,7 @@ class WebInterface(object):
     pass
 
   def _status(self):
-    files = _image_scanner.lookup(50)
+    files = _image_scanner.scan(50)
 
 
   def _image(self, path):
