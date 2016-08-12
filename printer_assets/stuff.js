@@ -5,6 +5,6 @@ Image = React.createClass({
   }
 });
 
-function loadStuff() {
+window.loadStuff = function() {
   React.render(<Image/>, document.getElementById('stuff'));
 }
