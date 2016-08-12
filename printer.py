@@ -31,13 +31,17 @@ class Printer(object):
 
 class ImageScanner(object):
   def __init__(self, directory, glob_pattern):
-    self.directory = pathlib2.Path(directory)
+    self._directory = pathlib2.Path(directory)
     self._glob_pattern = glob_pattern
+
+  @property
+  def directory(self):
+    return str(self._directory)
 
   def scan(self, count):
     # TODO: Do something smarter than loading paths to every single picture ever all at once. Also use pathlib
     # everywhere instead of just some places
-    return [str(f.relative_to(self.directory)) for f in sorted(self.directory.glob(self._glob_pattern))[-count:]]
+    return [str(f.relative_to(self._directory)) for f in sorted(self._directory.glob(self._glob_pattern))[-count:]]
 
 
 class WebInterface(object):
