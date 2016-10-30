@@ -1,0 +1,50 @@
+body {
+  background-color: #e2e2e2;
+}
+
+.images {
+  display: -webkit-flex;
+  display: flex;
+  -webkit-flex-wrap: wrap;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+.image {
+  position: relative;
+  margin: 0.8em;
+  -webkit-flex: auto;
+  flex: auto;
+  width: 350px;
+}
+
+.image img {
+  width: 100%;
+  height: auto;
+}
+
+.overlay {
+  pointer-events: none;
+  position: absolute;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  font-size: 2.5em;
+  font-weight: bold;
+  font-family: sans-serif;
+  display: -webkit-flex;
+  display: flex;
+  -webkit-justify-content: center;
+  justify-content: center;
+  -webkit-align-items: center;
+  align-items: center;
+  transition: background-color 0.25s, color 0.25s;
+  -webkit-transition: background-color 0.25s, color 0.25s;
+  color: rgba(100, 100, 100, 0);
+}
+
+.overlay.visible {
+  background-color: rgba(210, 210, 210, 0.9);
+  color: rgba(100, 100, 100, 1);
+}
