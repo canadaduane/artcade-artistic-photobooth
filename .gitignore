@@ -4,3 +4,7 @@ downloads/imagenet-vgg-verydeep-19.mat
 images/
 *.swp
 .DS_Store
+/node_modules
+/__pycache__/
+*.pyc
+/printer_assets/generated/

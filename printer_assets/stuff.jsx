@@ -1,4 +1,9 @@
 
+import React from 'react';
+import ReactDOM from 'react-dom';
+import $ from 'jquery';
+
+
 var ImageGrid = React.createClass({
   getInitialState: function() {
     return {
@@ -131,5 +136,6 @@ var Image = React.createClass({
 });
 
 
-
-ReactDOM.render(<ImageGrid/>, document.getElementById('stuff'));
+export function start() {
+  ReactDOM.render(<ImageGrid/>, document.getElementById('stuff'));
+}
