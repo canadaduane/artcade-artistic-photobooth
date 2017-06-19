@@ -1,4 +1,3 @@
-import cups
 import tempfile
 import os
 import os.path
@@ -6,13 +5,16 @@ import glob
 import flask
 import pathlib2
 import subprocess
+import time
 
 
 ASSET_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'printer_assets')
 
 
-class Printer(object):
+class RealPrinter(object):
   def __init__(self):
+    # Import here so that we don't require pycups unless we're trying to use a real printer
+    import cups
     self._connection = cups.Connection()
 
   def print_picture(self, path):
@@ -31,6 +33,13 @@ class Printer(object):
       'StpFullBleed': 'True',
       'StpBorderless': 'True'
     })
+
+
+class FakePrinter(object):
+  def print_picture(self, path):
+    print "pretending to print %s" % path
+    # simulate some real delay
+    time.sleep(1)
 
 
 class ImageScanner(object):
@@ -82,5 +91,10 @@ class WebInterface(object):
 
 
 _image_scanner = ImageScanner(os.getenv('ARTCADE_IMAGE_DIR'), os.getenv('ARTCADE_IMAGE_GLOB'))
-_printer = Printer()
+
+if 'ARTCADE_DRY_RUN' in os.environ:
+  _printer = FakePrinter()
+else:
+  _printer = RealPrinter()
+
 app = WebInterface(_image_scanner, _printer).app
