@@ -6,6 +6,7 @@ import flask
 import pathlib2
 import subprocess
 import time
+import csv
 
 
 ASSET_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'printer_assets')
@@ -57,10 +58,21 @@ class ImageScanner(object):
     return [str(f.relative_to(self._directory)) for f in reversed(sorted(self._directory.glob(self._glob_pattern))[-count:])]
 
 
+class EmailReporter(object):
+  def __init__(self, csv_path):
+    self._csv_path = csv_path
+
+  def report(self, email_address):
+    with open(self._csv_path, 'a') as f:
+      w = csv.writer(f)
+      w.writerow([time.ctime(), email_address])
+
+
 class WebInterface(object):
-  def __init__(self, image_scanner, printer):
+  def __init__(self, image_scanner, printer, email_reporter):
     self._image_scanner = image_scanner
     self._printer = printer
+    self._email_reporter = email_reporter
 
     app = flask.Flask('printer')
     self.app = app
@@ -69,6 +81,7 @@ class WebInterface(object):
     app.route('/status')(self._status)
     app.route('/images/<path:path>')(self._image)
     app.route('/print/<path:path>', methods=['POST'])(self._print)
+    app.route('/response', methods=['POST'])(self._response)
     app.route('/assets/<path:path>')(self._asset)
 
   def _index(self):
@@ -86,6 +99,10 @@ class WebInterface(object):
     self._printer.print_picture(actual_path)
     return flask.jsonify(status='ok')
 
+  def _response(self):
+    self._email_reporter.report(flask.request.form['email'])
+    return 'ok'
+
   def _asset(self, path):
     return flask.send_from_directory(ASSET_DIR, path)
 
@@ -97,4 +114,6 @@ if 'ARTCADE_DRY_RUN' in os.environ:
 else:
   _printer = RealPrinter()
 
-app = WebInterface(_image_scanner, _printer).app
+_email_reporter = EmailReporter(os.getenv('ARTCADE_EMAIL_FILE'))
+
+app = WebInterface(_image_scanner, _printer, _email_reporter).app

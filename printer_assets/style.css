@@ -2,6 +2,65 @@ body {
   background-color: #e2e2e2;
 }
 
+.fullscreen {
+  position: absolute;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+}
+
+.survey {
+  transition: opacity 0.25s;
+  -webkit-transition: opacity 0.25s;
+  font-size: 1.8em;
+  font-weight: bold;
+  font-family: sans-serif;
+  background-color: rgba(210, 210, 210, 0.9);
+  color: #606060;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.survey.visible {
+  opacity: 1;
+}
+
+.survey.hidden {
+  pointer-events: none;
+  opacity: 0;
+}
+
+.survey form {
+  display: flex;
+  flex-direction: column;
+}
+
+.survey form > div {
+  margin: 2pt;
+}
+
+.survey form input {
+  outline: none;
+  /* border-radius: 2px; */
+  border: none;
+  font-size: 0.9em;
+  color: #606060;
+}
+
+.bypass {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 18%;
+  height: 18%;
+}
+
+.content {
+  overflow: auto;
+}
+
 .images {
   display: -webkit-flex;
   display: flex;
@@ -15,7 +74,7 @@ body {
   margin: 0.8em;
   -webkit-flex: auto;
   flex: auto;
-  width: 350px;
+  width: 300px;
 }
 
 .image img {
