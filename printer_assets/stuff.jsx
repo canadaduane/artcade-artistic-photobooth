@@ -6,7 +6,7 @@ import $ from 'jquery';
 // Number of seconds to wait between polling for new images
 const REFRESH_DELAY = 10000;
 // Number of second to wait after interaction before redisplaying the survey overlay
-const SURVEY_DELAY = 15000;
+const SURVEY_DELAY = 20000;
 
 var App = React.createClass({
   getInitialState: function() {
