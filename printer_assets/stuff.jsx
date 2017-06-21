@@ -49,7 +49,7 @@ var App = React.createClass({
           <div>Email:</div>
           <div>
             <input
-              type="text"
+              type="email"
               ref={(input) => { this.emailInput = input; }}
               value={this.state.overlayEmail}
               readonly={!this.state.overlayVisible}
