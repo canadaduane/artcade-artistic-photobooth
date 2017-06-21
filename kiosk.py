@@ -136,8 +136,8 @@ class MainWindow():
     print "Capture size: {0}x{1}".format(self.capw, self.caph)
 
     self.capture = cv2.VideoCapture(0)
-    self.capture.set(cv2.cv.CV_CAP_PROP_FRAME_WIDTH, self.capw)
-    self.capture.set(cv2.cv.CV_CAP_PROP_FRAME_HEIGHT, self.caph)
+    self.capture.set(cv2.CAP_PROP_FRAME_WIDTH, self.capw)
+    self.capture.set(cv2.CAP_PROP_FRAME_HEIGHT, self.caph)
 
     self.root.columnconfigure(0, weight=0)
     self.root.columnconfigure(1, weight=0)
