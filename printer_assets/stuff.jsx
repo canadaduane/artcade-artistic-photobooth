@@ -52,6 +52,7 @@ var App = React.createClass({
               type="text"
               ref={(input) => { this.emailInput = input; }}
               value={this.state.overlayEmail}
+              readonly={!this.state.overlayVisible}
               onChange={this.overlayEmailChanged}
             />
           </div>
@@ -81,6 +82,12 @@ var App = React.createClass({
     this.setState({
       overlayVisible: false,
     });
+
+    // needed along with setting readonly on the input to force the android keyboard to close
+    setTimeout(() => {
+      this.emailInput.blur();
+    }, 250);
+
     this.currentTimeout = setTimeout(() => {
       this.currentTimeout = null;
       this.showOverlay();
