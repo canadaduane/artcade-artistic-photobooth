@@ -59,31 +59,36 @@ class ArtRequest():
     lines = stdout.readlines(); stdout.close()
     return lines[-n:]
 
-  def parse_status_line(self, line):
-    iter_m = match(r"""^Iteration: (\d+), cost: (.+)$""", line)
-    status_m = match(r"""^Status: (.+)$""", line)
-    if iter_m:
-      return (int(iter_m.group(1)) + 1, float(iter_m.group(2)))
-    elif status_m:
+  def parse_status_file(self, lines):
+    status_m = match(r"""^Status: (.+)$""", lines[-1])
+    # One line for each iteration, minus the status line at the beginning
+    iterations = len(lines) - 1
+    if status_m:
       if status_m.group(1) == "starting":
-        return (1, 0.0)
+        # pretend like we've done at least one iteration once we've started
+        return 1
       elif status_m.group(1) == "done":
         # We use maxIterations+1 as a sentinel value indicating "completely done"
         # without this, it's possible the neural_artistic_style.py script can
         # report its last iteration, meanwhile the output.jpg file has not been
         # written to disk (or is partially written to disk)
-        return (ArtRequest.maxIterations + 1, 0.0)
-      else:
-        return (None, None)
+        return ArtRequest.maxIterations + 1
+    elif iterations > ArtRequest.maxIterations:
+      # We've got a serious problem if we wind up with more lines than we're
+      # expecting iterations. But we also don't want such a problem to cause
+      # us to try to grab the output image early, so we warn and cap the
+      # number of iterations we report.
+      print "More output lines than there are iterations. Something's not right."
+      return ArtRequest.maxIterations
     else:
-      return (None, None)
+      return iterations
 
   def get_status(self):
     if self.is_stdout_available():
-      lines = self.tail(self.status_filepath())
+      with open(self.status_filepath()) as f:
+        lines = f.readlines()
       if len(lines) > 0:
-        iteration, cost = self.parse_status_line(lines[0])
-        return iteration
+        return self.parse_status_file(lines)
       else:
         print "Can't tail ", self.status_filepath()
         return None
