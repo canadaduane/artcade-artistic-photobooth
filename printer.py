@@ -62,10 +62,16 @@ class EmailReporter(object):
   def __init__(self, csv_path):
     self._csv_path = csv_path
 
-  def report(self, email_address):
+  def report_email(self, email_address):
+    self._append_row(email_address, 'email')
+
+  def report_image(self, email_address, image_path, printed):
+    self._append_row(email_address, 'image', image_path, 'yes' if printed else 'no')
+
+  def _append_row(self, email_address, row_type, image_path='', printed=''):
     with open(self._csv_path, 'a') as f:
       w = csv.writer(f)
-      w.writerow([time.ctime(), email_address])
+      w.writerow([time.ctime(), email_address, row_type, image_path, printed])
 
 
 class WebInterface(object):
@@ -81,6 +87,7 @@ class WebInterface(object):
     app.route('/status')(self._status)
     app.route('/images/<path:path>')(self._image)
     app.route('/print/<path:path>', methods=['POST'])(self._print)
+    app.route('/email/<path:path>', methods=['POST'])(self._email)
     app.route('/response', methods=['POST'])(self._response)
     app.route('/assets/<path:path>')(self._asset)
 
@@ -95,12 +102,17 @@ class WebInterface(object):
     return flask.send_from_directory(self._image_scanner.directory, path)
 
   def _print(self, path):
+    self._email_reporter.report_image(flask.request.form['email'], path, True)
     actual_path = flask.safe_join(self._image_scanner.directory, path)
     self._printer.print_picture(actual_path)
     return flask.jsonify(status='ok')
 
+  def _email(self, path):
+    self._email_reporter.report_image(flask.request.form['email'], path, False)
+    return flask.jsonify(status='ok')
+
   def _response(self):
-    self._email_reporter.report(flask.request.form['email'])
+    self._email_reporter.report_email(flask.request.form['email'])
     return 'ok'
 
   def _asset(self, path):

@@ -6,14 +6,27 @@ import $ from 'jquery';
 // Number of seconds to wait between polling for new images
 const REFRESH_DELAY = 10000;
 // Number of second to wait after interaction before redisplaying the survey overlay
-const SURVEY_DELAY = 20000;
+const SURVEY_DELAY = 25000;
+
+// Image component modes
+const NOTHING = 'nothing';
+const CHOOSING = 'choosing';
+const WAITING = 'waiting';
+const DONE = 'done';
+const FAILED = 'failed';
+
+// Image component actions. Used as the first component of the path to post to, so make sure they match up with the
+// backend.
+const PRINT = 'print';
+const EMAIL = 'email';
 
 var App = React.createClass({
   getInitialState: function() {
     return {
       overlayVisible: true,
-      overlayEmail: ''
-    }
+      overlayEmail: '',
+      currentEmail: null
+    };
   },
 
   componentDidMount: function() {
@@ -41,10 +54,11 @@ var App = React.createClass({
 
     return <div className="fullscreen">
       <div className="fullscreen content" ref={(div) => { this.contentElement = div; }}>
-        <ImageGrid onInteraction={this.hideOverlay}/>
+        <ImageGrid currentEmail={this.state.currentEmail} onInteraction={this.hideOverlay}/>
       </div>
       <div className={overlayClass}>
-        <div className="bypass" onClick={this.dismissOverlay}/>
+        <div className="bypass-without-email" onClick={this.dismissWithoutEmail}/>
+        <div className="bypass-with-email" onClick={this.dismissWithEmail}/>
         <form onSubmit={this.submitOverlay}>
           <div>Email:</div>
           <div>
@@ -52,7 +66,7 @@ var App = React.createClass({
               type="email"
               ref={(input) => { this.emailInput = input; }}
               value={this.state.overlayEmail}
-              readonly={!this.state.overlayVisible}
+              readOnly={!this.state.overlayVisible}
               onChange={this.overlayEmailChanged}
             />
           </div>
@@ -111,10 +125,17 @@ var App = React.createClass({
       }
     });
 
+    this.setState({currentEmail: this.state.overlayEmail});
+
     this.hideOverlay();
   },
 
-  dismissOverlay: function() {
+  dismissWithoutEmail: function() {
+    this.setState({currentEmail: null});
+    this.hideOverlay();
+  },
+
+  dismissWithEmail: function() {
     this.hideOverlay();
   },
 
@@ -175,8 +196,8 @@ var ImageGrid = React.createClass({
   render: function() {
     return <div>
       <div className="images">{
-        this.state.status.images.map(function(path) {
-          return <Image key={path} path={path}/>;
+        this.state.status.images.map((path) => {
+          return <Image key={path} path={path} currentEmail={this.props.currentEmail}/>;
         })
       }</div>
     </div>;
@@ -196,60 +217,129 @@ var ImageGrid = React.createClass({
 var Image = React.createClass({
   getInitialState: function() {
     return {
-      printing: false,
-      printed: false,
-      failed: false
+      mode: NOTHING,
+      action: null
     };
   },
 
-  printImage: function(e) {
+  imageTapped: function(e) {
     e.preventDefault();
 
-    console.log("print requested");
+    this.setState((state, props) => {
+      if (state.mode != NOTHING) {
+        return;
+      }
 
-    if (this.state.printing || this.state.printed || this.state.failed) {
-      return;
+      this.stopChoosingTimeout = setTimeout(() => {
+        this.stopChoosingTimeout = null;
+        this.setState({mode: NOTHING});
+      }, 20000);
+
+      return {
+        mode: CHOOSING
+      };
+    });
+  },
+
+  printTapped(e) {
+    this.actionTapped(PRINT, e);
+  },
+
+  emailTapped(e) {
+    this.actionTapped(EMAIL, e);
+  },
+
+  actionTapped: function(action, e) {
+    e.preventDefault();
+
+    if (this.stopChoosingTimeout) {
+      clearTimeout(this.stopChoosingTimeout);
+      this.stopChoosingTimeout = null;
     }
 
-    console.log("printing...");
-
-    this.setState({printing: true});
-    $.ajax('/print/' + this.props.path, {
-      type: 'POST',
-      timeout: 30000,
-      success: () => {
-        this.setState({printing: false, printed: true});
-        setTimeout(() => {
-          this.setState({printed: false});
-        }, 15000);
-      },
-      error: () => {
-        this.setState({printing: false, failed: true});
-        setTimeout(() => {
-          this.setState({failed: false});
-        }, 4000);
+    this.setState((state, props) => {
+      if (state.mode != CHOOSING) {
+        return;
       }
+
+      $.ajax(`/${action}/${props.path}`, {
+        type: 'POST',
+        data: {
+          email: props.currentEmail
+        },
+        timeout: 30000,
+        success: () => {
+          this.setState({mode: DONE});
+          setTimeout(() => {
+            this.reset();
+          }, 6000);
+        },
+        error: () => {
+          this.setState({mode: FAILED});
+          setTimeout(() => {
+            this.reset();
+          }, 4000);
+        }
+      });
+
+      return {
+        mode: WAITING,
+        action
+      };
+    });
+  },
+
+  reset: function() {
+    this.setState({
+      mode: NOTHING,
+      action: null
     });
   },
 
   render: function() {
-    var overlayClass = "overlay";
-    var overlayText = "";
+    let overlayClass = 'overlay';
+    let overlayContent;
 
-    if (this.state.printing) {
-      overlayClass += " visible";
-      overlayText = "Printing...";
-    } else if (this.state.printed) {
-      overlayClass += " visible";
-      overlayText = "Done.";
-    } else if (this.state.failed) {
-      overlayClass += " visible";
-      overlayText = "Couldn't print.";
+    if (this.state.mode != NOTHING) {
+      overlayClass += ' visible';
+    }
+
+    if (this.state.mode == CHOOSING) {
+      let emailLink = null;
+      if (this.props.currentEmail) {
+        emailLink = <a href="#" onClick={this.emailTapped}>Email</a>;
+      }
+
+      let printLink = <a href="#" onClick={this.printTapped}>Print</a>;
+
+      overlayContent = <div className="chooser">
+        {emailLink}
+        {printLink}
+      </div>;
+    } else if (this.state.mode == WAITING && this.state.action == PRINT) {
+      overlayContent = 'Printing...';
+    } else if (this.state.mode == WAITING && this.state.action == EMAIL) {
+      overlayContent = 'Working...';
+    } else if (this.state.mode == DONE && this.state.action == PRINT) {
+      overlayContent = 'Done.';
+    } else if (this.state.mode == DONE && this.state.action == EMAIL) {
+      overlayContent = <div className="email-done">
+        <div>
+          Got it.
+        </div>
+        <div className="subtitle">
+          We'll send you an email within the next few days.
+        </div>
+      </div>;
+    } else if (this.state.mode == FAILED && this.state.action == PRINT) {
+      overlayContent = "Couldn't print.";
+    } else if (this.state.mode == FAILED && this.state.action == EMAIL) {
+      overlayContent = "Couldn't email.";
     }
 
     return <div className="image">
-      <img onClick={this.printImage} src={"/images/" + this.props.path}/>
-      <div className={overlayClass}>{overlayText}</div>
+      <img onClick={this.imageTapped} src={`/images/${this.props.path}`}/>
+      <div className={overlayClass}>{overlayContent}</div>
     </div>;
   }
 });

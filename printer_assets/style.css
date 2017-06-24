@@ -49,10 +49,18 @@ body {
   color: #606060;
 }
 
-.bypass {
+.bypass-without-email {
   position: absolute;
   top: 0;
   right: 0;
+  width: 18%;
+  height: 18%;
+}
+
+.bypass-with-email {
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 18%;
   height: 18%;
 }
@@ -89,7 +97,7 @@ body {
   top: 0;
   right: 0;
   bottom: 0;
-  font-size: 2.5em;
+  font-size: 2.1em;
   font-weight: bold;
   font-family: sans-serif;
   display: -webkit-flex;
@@ -104,6 +112,29 @@ body {
 }
 
 .overlay.visible {
+  pointer-events: auto;
   background-color: rgba(210, 210, 210, 0.9);
   color: rgba(100, 100, 100, 1);
+}
+
+.overlay .chooser a {
+  /* vertical padding to make it easier to tap */
+  padding: 1em 0.5em;
+  font-size: 0.8em;
+  color: inherit;
+  text-decoration: none;
+}
+
+.email-done {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+}
+
+.email-done .subtitle {
+  font-size: 0.5em;
+  font-weight: normal;
+  text-align: center;
+  margin: 0.15em 0.6em;
 }
